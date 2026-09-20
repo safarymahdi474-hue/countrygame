@@ -25,6 +25,20 @@ class Settings:
     sentry_dsn: str | None = None
 
 
+def normalize_database_url(url: str) -> str:
+    """
+    Railway (و خیلی سرویس‌های دیگه) معمولاً DATABASE_URL رو به‌صورت
+    postgresql:// یا postgres:// می‌دن (درایور sync پیش‌فرض). این پروژه
+    فقط asyncpg نصب داره، پس همیشه درایور رو asyncpg اجبار می‌کنیم —
+    دیگه لازم نیست دستی تو env این رو درست کنی.
+    """
+    if url.startswith("postgres://"):
+        return "postgresql+asyncpg://" + url[len("postgres://"):]
+    if url.startswith("postgresql://"):
+        return "postgresql+asyncpg://" + url[len("postgresql://"):]
+    return url
+
+
 def load_settings() -> Settings:
     token = os.environ.get("BOT_TOKEN")
     db_url = os.environ.get("DATABASE_URL")
@@ -38,7 +52,7 @@ def load_settings() -> Settings:
 
     return Settings(
         bot_token=token,
-        database_url=db_url,
+        database_url=normalize_database_url(db_url),
         admin_ids=admin_ids,
         debug=os.environ.get("DEBUG", "0") == "1",
         sentry_dsn=os.environ.get("SENTRY_DSN") or None,
