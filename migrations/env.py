@@ -13,13 +13,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from bot.database.engine import Base  # noqa: E402
 import bot.models  # noqa: E402,F401 — همه‌ی مدل‌ها رو ثبت می‌کنه رو Base.metadata
+from bot.config.settings import normalize_database_url  # noqa: E402
 
 config = context.config
 
-# اگه DATABASE_URL تو env ست شده بود، جایگزین مقدار alembic.ini می‌کنیم
+# اگه DATABASE_URL تو env ست شده بود، جایگزین مقدار alembic.ini می‌کنیم —
+# و همیشه درایور asyncpg رو اجبار می‌کنیم (Railway و امثالش postgresql:// می‌دن)
 db_url = os.environ.get("DATABASE_URL")
 if db_url:
-    config.set_main_option("sqlalchemy.url", db_url)
+    config.set_main_option("sqlalchemy.url", normalize_database_url(db_url))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
